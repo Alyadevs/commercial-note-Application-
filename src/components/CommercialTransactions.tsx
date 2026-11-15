@@ -19,7 +19,7 @@ const TYPES = {
   remise: { label: 'Remise', sign: '−', badge: 'bg-blue-50 text-blue-600' },
 } as const;
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 8;
 
 export default function CommercialTransactions() {
   const { id = '' } = useParams();
@@ -98,14 +98,14 @@ function getPageNumbers(): (number | '...')[] {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-        <span className="ml-3 text-gray-400 text-sm">Chargement...</span>
+        <div className="w-6 h-6 border-2 rounded-full border-primary-600 border-t-transparent animate-spin" />
+        <span className="ml-3 text-sm text-gray-400">Chargement...</span>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-6xl px-4 py-8 mx-auto">
       <Link to="/" className="inline-flex items-center gap-1.5 text-gray-500 hover:text-gray-700 text-sm mb-6">
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -114,17 +114,17 @@ function getPageNumbers(): (number | '...')[] {
       </Link>
 
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
           Transactions{commercial ? ` de ${commercial.nom}` : ''}
         </h1>
-        <p className="text-gray-500 text-sm mt-1">Crédits, paiements et remises de ses clients</p>
+        <p className="mt-1 text-sm text-gray-500">Crédits, paiements et remises de ses clients</p>
       </div>
 
       {error && (
-        <p className="text-red-600 text-sm bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-4">{error}</p>
+        <p className="px-3 py-2 mb-4 text-sm text-red-600 border border-red-100 rounded-lg bg-red-50">{error}</p>
       )}
 
-     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+     <div className="grid grid-cols-1 gap-4 mb-8 md:grid-cols-3">
   <SummaryCard
     label="Total crédits"
     value={sum('credit')}
@@ -215,8 +215,8 @@ function getPageNumbers(): (number | '...')[] {
 )}
 </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
+      <div className="overflow-hidden bg-white border border-gray-100 shadow-sm rounded-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-800">
             {filtered.length} transaction{filtered.length !== 1 ? 's' : ''}
           </h2>
@@ -236,14 +236,14 @@ function getPageNumbers(): (number | '...')[] {
         </div>
 
         {shown.length === 0 ? (
-          <p className="text-gray-500 text-sm text-center py-14">Aucune transaction pour ce filtre.</p>
+          <p className="text-sm text-center text-gray-500 py-14">Aucune transaction pour ce filtre.</p>
         ) : (
           <div>
             
           <div className="overflow-x-auto">
             
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-500 text-left text-xs uppercase tracking-wide">
+              <thead className="text-xs tracking-wide text-left text-gray-500 uppercase bg-gray-50">
                 <tr>
                   <th className="px-5 py-3.5 font-semibold">Date</th>
                   <th className="px-5 py-3.5 font-semibold">Client</th>
@@ -256,7 +256,7 @@ function getPageNumbers(): (number | '...')[] {
                 {shown.map((r) => {
                   const cfg = TYPES[r.type];
                   return (
-                    <tr key={`${r.type}-${r._id}`} className="hover:bg-gray-50/80 transition-colors">
+                    <tr key={`${r.type}-${r._id}`} className="transition-colors hover:bg-gray-50/80">
                       <td className="px-5 py-3.5 text-gray-500 whitespace-nowrap">{formatDate(r.date)}</td>
                       <td className="px-5 py-3.5">
                         <Link to={`/clients/${r.clientId}`} className="font-medium text-gray-800 hover:text-primary-600">
@@ -291,7 +291,7 @@ function getPageNumbers(): (number | '...')[] {
       <button
         onClick={() => setPage(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
-        className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-600 hover:bg-white hover:shadow-sm transition disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:shadow-none disabled:cursor-not-allowed"
+        className="flex items-center justify-center w-8 h-8 text-gray-600 transition rounded-lg hover:bg-white hover:shadow-sm disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:shadow-none disabled:cursor-not-allowed"
         aria-label="Page précédente"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -301,7 +301,7 @@ function getPageNumbers(): (number | '...')[] {
 
       {getPageNumbers().map((p, i) =>
         p === '...' ? (
-          <span key={`dots-${i}`} className="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">
+          <span key={`dots-${i}`} className="flex items-center justify-center w-8 h-8 text-sm text-gray-400">
             …
           </span>
         ) : (
@@ -322,7 +322,7 @@ function getPageNumbers(): (number | '...')[] {
       <button
         onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}
-        className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-600 hover:bg-white hover:shadow-sm transition disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:shadow-none disabled:cursor-not-allowed"
+        className="flex items-center justify-center w-8 h-8 text-gray-600 transition rounded-lg hover:bg-white hover:shadow-sm disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:shadow-none disabled:cursor-not-allowed"
         aria-label="Page suivante"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -360,9 +360,9 @@ function SummaryCard({
 }) {
   const t = TONES[tone];
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center justify-between gap-4 hover:shadow-md transition-shadow">
+    <div className="flex items-center justify-between gap-4 p-5 transition-shadow bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md">
       <div>
-        <p className="text-gray-500 text-sm">{label}</p>
+        <p className="text-sm text-gray-500">{label}</p>
         <p className={`text-3xl font-bold mt-1 tracking-tight ${color}`}>{value.toFixed(2)}</p>
       </div>
       <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${t.bg} ${t.text}`}>

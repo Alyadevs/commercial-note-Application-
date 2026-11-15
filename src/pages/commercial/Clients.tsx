@@ -5,6 +5,15 @@ import { Client } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import ChatBot from '../../components/chatbot';
 const PAGE_SIZE = 6;
+interface AvailableClient {
+  _id: string;
+  nom: string;
+  telephone?: string;
+  adresse?: string;
+}
+
+const inputClass =
+  'w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-shadow';
 export default function Clients() {
   const [page, setPage] = useState(1);
   const [clients, setClients] = useState<Client[]>([]);
@@ -19,6 +28,9 @@ export default function Clients() {
 const [searchTel, setSearchTel] = useState('');
 const [searchAdresse, setSearchAdresse] = useState('');
 const [searchMontant, setSearchMontant] = useState('');
+const [available, setAvailable] = useState<AvailableClient[]>([]);
+const [selectedId, setSelectedId] = useState(''); // '' = rien choisi, '__new' = nouveau client
+const [saving, setSaving] = useState(false);
 
   async function loadClients() {
     setLoading(true);
@@ -31,18 +43,47 @@ const [searchMontant, setSearchMontant] = useState('');
     loadClients();
   }, []);
 
-  async function handleAddClient(e: FormEvent) {
-    e.preventDefault();
-    setError('');
-    try {
-      await api.post('/clients', { nom, telephone, adresse });
-      setNom(''); setTelephone(''); setAdresse('');
-      setShowForm(false);
-      loadClients();
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Erreur lors de l'ajout du client");
-    }
+ async function loadAvailable(): Promise<AvailableClient[]> {
+  try {
+    const { data } = await api.get('/clients/disponibles');
+    setAvailable(data);
+    return data;
+  } catch {
+    setAvailable([]);
+    return [];
   }
+}
+
+async function openForm() {
+  setError('');
+  setSelectedId('');
+  setShowForm(true);
+  const list = await loadAvailable();
+  if (list.length === 0) setSelectedId('__new'); // rien à choisir : on passe directement à la création
+}
+
+async function handleAddClient(e: FormEvent) {
+  e.preventDefault();
+  setError('');
+  if (!selectedId) return setError('Choisissez un client dans la liste, ou « Autre client »');
+
+  setSaving(true);
+  try {
+    if (selectedId === '__new') {
+      await api.post('/clients', { nom, telephone, adresse });
+    } else {
+      await api.post(`/clients/${selectedId}/rattacher`);
+    }
+    setNom(''); setTelephone(''); setAdresse(''); setSelectedId('');
+    setShowForm(false);
+    loadClients();
+  } catch (err: any) {
+    setError(err.response?.data?.message || "Erreur lors de l'ajout du client");
+    if (selectedId !== '__new') loadAvailable(); // la liste a peut-être changé
+  } finally {
+    setSaving(false);
+  }
+}
 
   const totalCredit = clients.reduce((sum, c) => sum + (c.soldeCredit || 0), 0);
 // Minuscules, sans accents
@@ -140,7 +181,7 @@ function getPageNumbers(): (number | '...')[] {
 
   <div className="flex items-center gap-3">
     <button
-      onClick={() => setShowForm(!showForm)}
+     onClick={() => (showForm ? setShowForm(false) : openForm())}
       className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 active:scale-[0.98] transition-all text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm shadow-primary-600/20"
     >
       {showForm ? (
@@ -166,57 +207,82 @@ function getPageNumbers(): (number | '...')[] {
 
       {/* Form */}
       {showForm && (
-        <form
-          onSubmit={handleAddClient}
-          className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-200"
-        >
-          <div className="md:col-span-3 mb-1">
-            <h2 className="text-base font-semibold text-gray-800">Ajouter un nouveau client</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Renseignez au moins le nom du client</p>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5">Nom *</label>
-            <input
-              required
-              placeholder="Ex : Ahmed Ben Salah"
-              value={nom}
-              onChange={(e) => setNom(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-shadow"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5">Téléphone</label>
-            <input
-              placeholder="Ex : 20 123 456"
-              value={telephone}
-              onChange={(e) => setTelephone(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-shadow"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5">Adresse</label>
-            <input
-              placeholder="Ex : Tunis, Cité Ennasr"
-              value={adresse}
-              onChange={(e) => setAdresse(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-shadow"
-            />
-          </div>
+  <form
+    onSubmit={handleAddClient}
+    className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 grid grid-cols-1 md:grid-cols-3 gap-4"
+  >
+    <div className="md:col-span-3 mb-1">
+      <h2 className="text-base font-semibold text-gray-800">Ajouter un client</h2>
+      <p className="text-xs text-gray-400 mt-0.5">
+        Choisissez un client déjà créé par l'administrateur, ou créez-en un nouveau.
+      </p>
+    </div>
 
-          {error && (
-            <p className="md:col-span-3 text-red-600 text-sm bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            className="md:col-span-3 bg-primary-600 hover:bg-primary-700 active:scale-[0.99] transition-all text-white py-2.5 rounded-xl font-semibold text-sm shadow-sm shadow-primary-600/20"
-          >
-            Enregistrer le client
-          </button>
-        </form>
+    <div className="md:col-span-3">
+      <label className="block text-xs font-medium text-gray-500 mb-1.5">Client *</label>
+      <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)} className={inputClass}>
+        <option value="">Choisir un client...</option>
+        {available.map((c) => (
+          <option key={c._id} value={c._id}>
+            {c.nom}{c.adresse ? ` — ${c.adresse}` : ''}
+          </option>
+        ))}
+        <option value="__new">+ Autre client (nouveau)</option>
+      </select>
+      {available.length === 0 && (
+        <p className="mt-1.5 text-xs text-gray-400">
+          Aucun client disponible pour le moment : créez-en un nouveau.
+        </p>
       )}
+    </div>
+
+    {/* Résumé du client choisi dans la liste */}
+    {available.find((c) => c._id === selectedId) && (
+      <div className="md:col-span-3 flex items-center gap-3 p-4 rounded-xl bg-primary-50 border border-primary-100">
+        <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-semibold shrink-0">
+          {getInitials(available.find((c) => c._id === selectedId)!.nom)}
+        </div>
+        <div className="min-w-0">
+          <p className="font-semibold text-gray-800">{available.find((c) => c._id === selectedId)!.nom}</p>
+          <p className="text-xs text-gray-500">
+            {available.find((c) => c._id === selectedId)!.telephone || 'Pas de téléphone'} ·{' '}
+            {available.find((c) => c._id === selectedId)!.adresse || "Pas d'adresse"}
+          </p>
+        </div>
+      </div>
+    )}
+
+    {/* Champs de création : seulement pour un nouveau client */}
+    {selectedId === '__new' && (
+      <>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1.5">Nom *</label>
+          <input required placeholder="Ex : Ahmed Ben Salah" value={nom} onChange={(e) => setNom(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1.5">Téléphone</label>
+          <input placeholder="Ex : 20 123 456" value={telephone} onChange={(e) => setTelephone(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1.5">Adresse</label>
+          <input placeholder="Ex : Tunis, Cité Ennasr" value={adresse} onChange={(e) => setAdresse(e.target.value)} className={inputClass} />
+        </div>
+      </>
+    )}
+
+    {error && (
+      <p className="md:col-span-3 text-red-600 text-sm bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</p>
+    )}
+
+    <button
+      type="submit"
+      disabled={!selectedId || saving}
+      className="md:col-span-3 bg-primary-600 hover:bg-primary-700 active:scale-[0.99] transition-all text-white py-2.5 rounded-xl font-semibold text-sm shadow-sm shadow-primary-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {saving ? 'Enregistrement...' : selectedId === '__new' ? 'Enregistrer le client' : 'Ajouter à mes clients'}
+    </button>
+  </form>
+)}
       {clients.length > 0 && (
   <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

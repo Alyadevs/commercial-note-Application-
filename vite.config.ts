@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'https://commercial-note-app-backend.onrender.com',
+        target: 'http://localhost:3000',
         changeOrigin: true,
       },
     },

@@ -15,6 +15,18 @@ import ForgotPassword from './pages/Forgotpassword';
 import ResetPassword from './pages/reset';
 import CommercialTransactions from './components/CommercialTransactions';
 import Layout from './components/Layout';
+import Products from './pages/admin/Products';
+import Categories from './pages/admin/Categories';
+import NewInvoice from './pages/admin/NewInvoice';
+import Invoices from './pages/admin/Invoices';
+import AdminClients from './pages/admin/AdminClients';
+import Purchases from './pages/admin/Purchases';
+import NewPurchase from './pages/admin/NewPurchase';
+import Transfers from './pages/admin/Transfers';
+import NewTransfer from './pages/admin/NewTransfer';
+import MyStock from './pages/commercial/MyStock';
+import CommercialNewInvoice from './pages/commercial/CommercialNewInvoice';
+import CommercialInvoices from './pages/commercial/CommercialInvoices';
 
 export default function App() {
   const { user } = useAuth();
@@ -33,6 +45,9 @@ export default function App() {
         <Route element={<PrivateRoute allow={['commercial']} />}>
           <Route path="/" element={<Clients />} />
           <Route path="/clients/:id" element={<ClientDetail />} />
+          <Route path="/mon-stock" element={<MyStock />} />
+<Route path="/factures" element={<CommercialInvoices />} />
+<Route path="/factures/nouvelle" element={<CommercialNewInvoice />} />
          
         </Route>
 
@@ -42,6 +57,15 @@ export default function App() {
           <Route path="/admin/commerciaux" element={<Commerciaux />} />
           <Route path="/admin/journal" element={<ActivityLog />} />
           <Route path="/admin/commerciaux/:id/transactions" element={<CommercialTransactions />} />
+          <Route path="/admin/produits" element={<Products />} />
+          <Route path="/admin/categories" element={<Categories />} />
+          <Route path="/admin/factures/nouvelle" element={<NewInvoice />} />
+          <Route path="/admin/factures" element={<Invoices />} />
+          <Route path="/admin/clients" element={<AdminClients />} />
+          <Route path="/admin/achats" element={<Purchases />} />
+          <Route path="/admin/achats/nouveau" element={<NewPurchase />} />
+          <Route path="/admin/transferts" element={<Transfers />} />
+<Route path="/admin/transferts/nouveau" element={<NewTransfer />} />
         </Route>
 
         {/* Redirection par défaut selon le rôle une fois connecté */}

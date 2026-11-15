@@ -20,6 +20,12 @@ const ICONS = {
   dashboard: svg('M4 6a2 2 0 012-2h3a2 2 0 012 2v3a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v3a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h3a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z'),
   commerciaux: svg('M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'),
   journal: svg('M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'),
+  produits: svg('M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'),
+categories: svg('M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.99 1.99 0 013 12V7a4 4 0 014-4z'),
+  facture: svg('M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z'),
+  liste: svg('M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'),
+  achats: svg('M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z'),
+  transfert: svg('M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4'),
 };
 
 export default function Navbar() {
@@ -55,10 +61,29 @@ export default function Navbar() {
           { to: '/admin', label: 'Tableau de bord', end: true, icon: ICONS.dashboard },
           { to: '/admin/commerciaux', label: 'Commerciaux', icon: ICONS.commerciaux },
           { to: '/admin/journal', label: "Journal d'activité", icon: ICONS.journal },
+            { to: '/admin/clients', label: 'Clients', icon: ICONS.clients },
+          { to: '/admin/produits', label: 'Produits', icon: ICONS.produits },
+          { to: '/admin/categories', label: 'Catégories', icon: ICONS.categories }, 
+          { to: '/admin/achats', label: 'Achats', end: true, icon: ICONS.achats },
+{ to: '/admin/achats/nouveau', label: 'Nouvel achat', icon: ICONS.achats },
+          { to: '/admin/factures/nouvelle', label: 'Nouvelle facture', icon: ICONS.facture },
+          { to: '/admin/factures', label: 'Liste des factures', icon: ICONS.liste },
+          
+{ to: '/admin/transferts', label: 'Transferts', end: true, icon: ICONS.transfert },
+{ to: '/admin/transferts/nouveau', label: 'Nouveau transfert', icon: ICONS.transfert },
+          
+        
+          
+          
         ]
-      : user.role === 'commercial'
-      ? [{ to: '/', label: 'Mes clients', end: true, icon: ICONS.clients }]
-      : [];
+     : user.role === 'commercial'
+? [
+    { to: '/', label: 'Mes clients', end: true, icon: ICONS.clients },
+    { to: '/mon-stock', label: 'Mon stock', icon: ICONS.produits },
+    { to: '/factures', label: 'Mes factures', end: true, icon: ICONS.liste },
+    { to: '/factures/nouvelle', label: 'Nouvelle facture', icon: ICONS.facture },
+  ]
+: [];
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
